@@ -14,6 +14,7 @@ const attributeValueRoutes = require('./attributeValue.route');
 const productModelRoutes = require('./productModel.route');
 const productVariantRoutes = require('./productVariant.route');
 const saleOrderRoutes = require('./saleOrder.route');
+const saleOrderItemRoutes = require('./saleOrderItem.route');
 
 router.use('/auth', authRoutes);
 router.use('/role', authenticateToken, roleRoutes);
@@ -26,5 +27,6 @@ router.use('/attributeValue', authenticateToken, attributeValueRoutes);
 router.use('/productModel', authenticateToken, productModelRoutes);
 router.use('/productVariant', authenticateToken, productVariantRoutes);
 router.use('/saleOrder', authenticateToken, saleOrderRoutes);
+router.use('/saleOrderItem', authenticateToken, saleOrderItemRoutes);
 
 module.exports = router;
