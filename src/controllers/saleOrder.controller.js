@@ -5,9 +5,9 @@ const Customer = db.Customer;
 
 const createSaleOrder = async (req, res) => {
     try {
-        const { employee_id, customer_id, total_amount, status, customer_name, customer_email } = req.body;
+        const { employee_id, customer_id, total_price, status, customer_name, customer_email } = req.body;
 
-        if (!employee_id || total_amount === undefined || total_amount === null || !status) {
+        if (!employee_id || total_price === undefined || total_price === null || !status) {
             return res.status(400).json({
                 status: 'fail',
                 message: 'Employee ID, total amount, and status are required.',
@@ -41,7 +41,7 @@ const createSaleOrder = async (req, res) => {
         const newSaleOrder = await SaleOrder.create({
             employee_id,
             customer_id,
-            total_amount,
+            total_price,
             status,
             customer_name,
             customer_email,
@@ -144,12 +144,12 @@ const getSaleOrderById = async (req, res) => {
 const updateSaleOrder = async (req, res) => {
     try {
         const { id } = req.params;
-        const { employee_id, customer_id, total_amount, status, customer_name, customer_email } = req.body;
+        const { employee_id, customer_id, total_price, status, customer_name, customer_email } = req.body;
 
         const updateFields = {};
         if (employee_id !== undefined) updateFields.employee_id = employee_id;
         if (customer_id !== undefined) updateFields.customer_id = customer_id;
-        if (total_amount !== undefined) updateFields.total_amount = total_amount;
+        if (total_price !== undefined) updateFields.total_price = total_price;
         if (status !== undefined) updateFields.status = status;
         if (customer_name !== undefined) updateFields.customer_name = customer_name;
         if (customer_email !== undefined) updateFields.customer_email = customer_email;
