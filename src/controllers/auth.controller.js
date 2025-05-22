@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { generateToken } = require('../config/jwt');
+const { generateToken } = require('../config/jwt.config');
 
 const db = require('../models');
 const Customer = db.Customer;
