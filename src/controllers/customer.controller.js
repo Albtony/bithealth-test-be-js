@@ -2,6 +2,7 @@ const db = require('../models');
 const Customer = db.Customer;
 const Address = db.Address;
 const SaleOrder = db.SaleOrder;
+const Role = db.Role;
 
 const getAllCustomers = async (req, res) => {
     try {
