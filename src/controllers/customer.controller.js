@@ -7,9 +7,9 @@ const getAllCustomers = async (req, res) => {
     try {
         const customers = await Customer.findAll({
             include: [
-                { model: db.Address, as: 'addresses' },
-                { model: db.Role, as: 'role' },
-                { model: db.SaleOrder, as: 'saleOrders' }
+                { model: Address, as: 'addresses' },
+                { model: Role, as: 'role' },
+                { model: SaleOrder, as: 'saleOrders' }
             ]
         });
         res.status(200).json({
@@ -33,9 +33,9 @@ const getCustomerById = async (req, res) => {
         const { id } = req.params;
         const customer = await Customer.findByPk(id, {
             include: [
-                { model: db.Address, as: 'addresses' },
-                { model: db.Role, as: 'role' },
-                { model: db.SaleOrder, as: 'saleOrders' }
+                { model: Address, as: 'addresses' },
+                { model: Role, as: 'role' },
+                { model: SaleOrder, as: 'saleOrders' }
             ]
         });
 
@@ -106,8 +106,8 @@ const createCustomer = async (req, res) => {
             await Address.bulkCreate(customerAddresses);
             await newCustomer.reload({
                 include: [
-                    { model: db.Address, as: 'addresses' },
-                    { model: db.Role, as: 'role' }
+                    { model: Address, as: 'addresses' },
+                    { model: Role, as: 'role' }
                 ]
             });
         }
@@ -157,8 +157,8 @@ const updateCustomer = async (req, res) => {
 
         const updatedCustomer = await Customer.findByPk(id, {
             include: [
-                { model: db.Address, as: 'addresses' },
-                { model: db.Role, as: 'role' }
+                { model: Address, as: 'addresses' },
+                { model: Role, as: 'role' }
             ]
         });
         res.status(200).json({
@@ -220,7 +220,7 @@ const getCustomerAddresses = async (req, res) => {
     try {
         const { id } = req.params;
         const customer = await Customer.findByPk(id, {
-            include: [{ model: db.Address, as: 'addresses' }]
+            include: [{ model: Address, as: 'addresses' }]
         });
 
         if (!customer) {
@@ -252,7 +252,7 @@ const getCustomerSaleOrders = async (req, res) => {
     try {
         const { id } = req.params;
         const customer = await Customer.findByPk(id, {
-            include: [{ model: db.SaleOrder, as: 'saleOrders' }]
+            include: [{ model: SaleOrder, as: 'saleOrders' }]
         });
 
         if (!customer) {
