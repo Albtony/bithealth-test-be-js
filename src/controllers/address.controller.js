@@ -53,9 +53,6 @@ const getAddressById = async (req, res) => {
 const createAddress = async (req, res) => {
     try {
         const customer_id = req.user.id; 
-        console.log('Customer ID from JWT (req.user.id):', customer_id); // <-- Add this
-        console.log('Expected true Customer ID:', '70c6e13f-4a8c-40ae-97f2-b2662f405b73'); // <-- Add this for comparison
-
         const {
             address_line_1,
             address_line_2,
