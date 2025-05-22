@@ -6,7 +6,7 @@ const mainRouter = require('./routes');
 
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
-const swaggerDocument = YAML.load('./config/openapi.yaml');
+const swaggerDocument = YAML.load('src/config/openapi.yaml');
 
 const corsOptions = {
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
