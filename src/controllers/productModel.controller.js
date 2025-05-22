@@ -1,6 +1,14 @@
 const db = require('../models');
 const ProductModel = db.ProductModel;
 const Category = db.Category;
+const Attribute = db.Attribute;
+
+const includeProductModelAssociations = {
+    include: [
+        { model: db.Category, as: 'category' },
+        { model: db.Attribute, as: 'attributes' }
+    ]
+};
 
 const createProductModel = async (req, res) => {
     try {
@@ -78,9 +86,7 @@ const createProductModel = async (req, res) => {
 
 const getAllProductModels = async (req, res) => {
     try {
-        const productModels = await ProductModel.findAll({
-            include: [{ model: db.Category, as: 'category' }]
-        });
+        const productModels = await ProductModel.findAll(includeProductModelAssociations);
         res.status(200).json({
             status: 'success',
             message: 'Product models retrieved successfully.',
@@ -102,9 +108,7 @@ const getAllProductModels = async (req, res) => {
 const getProductModelById = async (req, res) => {
     try {
         const { id } = req.params;
-        const productModel = await ProductModel.findByPk(id, {
-            include: [{ model: db.Category, as: 'category' }]
-        });
+        const productModel = await ProductModel.findByPk(id, includeProductModelAssociations);
 
         if (!productModel) {
             return res.status(404).json({
@@ -145,12 +149,22 @@ const updateProductModel = async (req, res) => {
         if (base_price !== undefined) updateFields.base_price = base_price;
 
         if (Object.keys(updateFields).length === 0) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'At least one field is required for update.',
-                data: null,
-                meta: {},
-            });
+            const productModelExists = await ProductModel.findByPk(id, includeProductModelAssociations);
+            if (productModelExists) {
+                 return res.status(200).json({
+                    status: 'success',
+                    message: 'No updatable fields provided or no changes were made to the product model.',
+                    data: productModelExists,
+                    meta: {},
+                });
+            } else {
+                return res.status(404).json({
+                    status: 'fail',
+                    message: 'Product model not found or no updatable fields provided.',
+                    data: null,
+                    meta: {},
+                });
+            }
         }
 
         if (category_id !== undefined && category_id !== null) {
@@ -179,18 +193,17 @@ const updateProductModel = async (req, res) => {
                     meta: {},
                 });
             } else {
+                const existingProductModelWithAssociations = await ProductModel.findByPk(id, includeProductModelAssociations);
                 return res.status(200).json({
                     status: 'success',
                     message: 'No changes were made to the product model (data provided was identical).',
-                    data: productModelExists,
+                    data: existingProductModelWithAssociations,
                     meta: {},
                 });
             }
         }
 
-        const updatedProductModel = await ProductModel.findByPk(id, {
-            include: [{ model: db.Category, as: 'category' }]
-        });
+        const updatedProductModel = await ProductModel.findByPk(id, includeProductModelAssociations);
         res.status(200).json({
             status: 'success',
             message: 'Product model updated successfully.',
@@ -259,10 +272,126 @@ const deleteProductModel = async (req, res) => {
     }
 };
 
+const addAttributesToProductModel = async (req, res) => {
+    try {
+        const { modelId } = req.params;
+        const { attribute_ids } = req.body;
+
+        if (!attribute_ids || !Array.isArray(attribute_ids) || attribute_ids.length === 0) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'An array of attribute_ids is required.',
+                data: null,
+                meta: {},
+            });
+        }
+
+        const productModel = await ProductModel.findByPk(modelId);
+        if (!productModel) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Product model not found.',
+                data: null,
+                meta: {},
+            });
+        }
+
+        const attributes = await Attribute.findAll({
+            where: { attribute_id: attribute_ids },
+        });
+
+        if (attributes.length !== attribute_ids.length) {
+            const existingAttributeIds = attributes.map(attr => attr.attribute_id);
+            const invalidAttributeIds = attribute_ids.filter(id => !existingAttributeIds.includes(id));
+
+            return res.status(404).json({
+                status: 'fail',
+                message: 'One or more provided attribute IDs do not exist.',
+                invalid_ids: invalidAttributeIds,
+                data: null,
+                meta: {},
+            });
+        }
+
+        await productModel.addAttributes(attributes);
+        const updatedProductModel = await ProductModel.findByPk(modelId, includeProductModelAssociations);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Attributes added to product model successfully.',
+            data: updatedProductModel,
+            meta: {},
+        });
+    } catch (error) {
+        console.error("Error adding attributes to product model:", error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to add attributes to product model.',
+            error: error.message,
+            meta: {},
+        });
+    }
+};
+
+const removeAttributesFromProductModel = async (req, res) => {
+    try {
+        const { modelId, attributeId } = req.params;
+
+        const productModel = await ProductModel.findByPk(modelId);
+        if (!productModel) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Product model not found.',
+                data: null,
+                meta: {},
+            });
+        }
+
+        const attribute = await Attribute.findByPk(attributeId);
+        if (!attribute) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Attribute not found.',
+                data: null,
+                meta: {},
+            });
+        }
+
+        const removed = await productModel.removeAttribute(attribute);
+        if (!removed) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Association between product model and attribute not found or already removed.',
+                data: null,
+                meta: {},
+            });
+        }
+
+        const updatedProductModel = await ProductModel.findByPk(modelId, includeProductModelAssociations);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Attribute removed from product model successfully.',
+            data: updatedProductModel,
+            meta: {},
+        });
+    } catch (error) {
+        console.error("Error removing attribute from product model:", error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to remove attribute from product model.',
+            error: error.message,
+            meta: {},
+        });
+    }
+};
+
 module.exports = {
     createProductModel,
     getAllProductModels,
     getProductModelById,
     updateProductModel,
     deleteProductModel,
+    addAttributesToProductModel,
+    removeAttributesFromProductModel,
 };
