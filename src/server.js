@@ -1,6 +1,7 @@
-require('dotenv-flow').config();
+require('dotenv').config();
+
 const app = require('./app'); 
-const db = require('./src/models'); 
+const db = require('./models'); 
 
 const PORT = process.env.PORT || 3000;
 
