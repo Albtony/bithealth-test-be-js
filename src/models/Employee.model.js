@@ -39,13 +39,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        hire_date: {
-            type: DataTypes.DATE,
-            defaultValue: DataTypes.NOW,
-            allowNull: false,
-        },
         job_title: {
             type: DataTypes.STRING,
+            allowNull: true,
+        },
+        is_active: {
+            type: DataTypes.BOOLEAN,
             allowNull: false,
         },
         role_id: {
