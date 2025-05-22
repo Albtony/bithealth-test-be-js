@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router(); 
 
 const authenticateToken = require('../middleware/authenticateToken.middleware');
+const authorizeRole = require('../middleware/authorizeRole.middleware');
 
 const employeeRoutes = require('./employee.route');
 const customerRoutes = require('./customer.route');
@@ -17,16 +18,15 @@ const saleOrderRoutes = require('./saleOrder.route');
 const saleOrderItemRoutes = require('./saleOrderItem.route');
 
 router.use('/auth', authRoutes);
-router.use('/role', authenticateToken, roleRoutes);
-router.use('/employees', authenticateToken, employeeRoutes);
-router.use('/customers', authenticateToken, customerRoutes);
-router.use('/address', authenticateToken, addressRoutes);
-router.use('/category', authenticateToken, categoryRoutes);
-router.use('/attribute', authenticateToken, attributeRoutes);
-router.use('/attributeValue', authenticateToken, attributeValueRoutes);
-router.use('/productModel', authenticateToken, productModelRoutes);
-router.use('/productVariant', authenticateToken, productVariantRoutes);
-router.use('/saleOrder', authenticateToken, saleOrderRoutes);
-router.use('/saleOrderItem', authenticateToken, saleOrderItemRoutes);
-
+router.use('/role', authenticateToken, authorizeRole(['SUPERADMIN']), roleRoutes);
+router.use('/employees', authenticateToken, authorizeRole(['ADMIN']), employeeRoutes); 
+router.use('/customers', authenticateToken, authorizeRole(['ADMIN', 'STAFF', 'CUSTOMER']), customerRoutes); 
+router.use('/address', authenticateToken, authorizeRole(['ADMIN', 'STAFF', 'CUSTOMER']), addressRoutes); 
+router.use('/category', authenticateToken, authorizeRole(['ADMIN', 'STAFF']), categoryRoutes);
+router.use('/attribute', authenticateToken, authorizeRole(['ADMIN', 'STAFF']), attributeRoutes);
+router.use('/attributeValue', authenticateToken, authorizeRole(['ADMIN', 'STAFF']), attributeValueRoutes);
+router.use('/productModel', authenticateToken, authorizeRole(['ADMIN', 'STAFF']), productModelRoutes);
+router.use('/productVariant', authenticateToken, authorizeRole(['ADMIN', 'STAFF']), productVariantRoutes);
+router.use('/saleOrder', authenticateToken, authorizeRole(['ADMIN', 'STAFF', 'CUSTOMER']), saleOrderRoutes); 
+router.use('/saleOrderItem', authenticateToken, authorizeRole(['ADMIN', 'STAFF', 'CUSTOMER']), saleOrderItemRoutes); 
 module.exports = router;
