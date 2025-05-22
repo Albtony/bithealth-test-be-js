@@ -17,6 +17,6 @@ router.use('/employees', authenticateToken, employeeRoutes);
 router.use('/customers', authenticateToken, customerRoutes);
 router.use('/address', authenticateToken, addressRoutes);
 router.use('/category', authenticateToken, categoryRoutes);
-router.use('/attribute', authenticateToken, categoryRoutes);
+router.use('/attribute', authenticateToken, attributeRoutes);
 
 module.exports = router;
