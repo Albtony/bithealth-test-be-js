@@ -12,6 +12,7 @@ const categoryRoutes = require('./category.route');
 const attributeRoutes = require('./attribute.route');
 const attributeValueRoutes = require('./attributeValue.route');
 const productModelRoutes = require('./productModel.route');
+const productVariantRoutes = require('./productVariant.route')
 
 router.use('/auth', authRoutes);
 router.use('/role', authenticateToken, roleRoutes);
@@ -22,5 +23,6 @@ router.use('/category', authenticateToken, categoryRoutes);
 router.use('/attribute', authenticateToken, attributeRoutes);
 router.use('/attributeValue', authenticateToken, attributeValueRoutes);
 router.use('/productModel', authenticateToken, productModelRoutes);
+router.use('/productVariant', authenticateToken, productVariantRoutes);
 
 module.exports = router;
