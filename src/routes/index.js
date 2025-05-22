@@ -10,6 +10,7 @@ const roleRoutes = require('./role.route');
 const addressRoutes = require('./address.route');
 const categoryRoutes = require('./category.route');
 const attributeRoutes = require('./attribute.route');
+const attributeValueRoutes = require('./attributeValue.route');
 
 router.use('/auth', authRoutes);
 router.use('/role', authenticateToken, roleRoutes);
@@ -18,5 +19,6 @@ router.use('/customers', authenticateToken, customerRoutes);
 router.use('/address', authenticateToken, addressRoutes);
 router.use('/category', authenticateToken, categoryRoutes);
 router.use('/attribute', authenticateToken, attributeRoutes);
+router.use('/attributeValue', authenticateToken, attributeValueRoutes);
 
 module.exports = router;
