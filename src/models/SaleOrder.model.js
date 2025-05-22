@@ -1,3 +1,5 @@
+// models/saleOrder.model.js
+
 const { DataTypes } = require('sequelize');
 
 /**
@@ -34,13 +36,15 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: DataTypes.NOW,
             allowNull: true,
         },
-        total_amount: {
+        total_price: { 
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
+            defaultValue: 0.00,
         },
-        status: {
-            type: DataTypes.ENUM('PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED', 'REFUNDED'), 
+        total_billed_price: { 
+            type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
+            defaultValue: 0.00,
         },
         customer_name: {
             type: DataTypes.STRING,
