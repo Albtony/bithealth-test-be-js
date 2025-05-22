@@ -2,15 +2,16 @@ const db = require('../models');
 const SaleOrder = db.SaleOrder;
 const Employee = db.Employee;
 const Customer = db.Customer;
+const SaleOrderItem = db.SaleOrderItem; 
 
 const createSaleOrder = async (req, res) => {
     try {
-        const { employee_id, customer_id, total_price, status, customer_name, customer_email } = req.body;
+        const { employee_id, customer_id, customer_name, customer_email, items } = req.body;
 
-        if (!employee_id || total_price === undefined || total_price === null || !status) {
+        if (!employee_id || !items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({
                 status: 'fail',
-                message: 'Employee ID, total amount, and status are required.',
+                message: 'Employee ID and at least one item are required.',
                 data: null,
                 meta: {},
             });
@@ -38,21 +39,42 @@ const createSaleOrder = async (req, res) => {
             }
         }
 
-        const newSaleOrder = await SaleOrder.create({
-            employee_id,
-            customer_id,
-            total_price,
-            status,
-            customer_name,
-            customer_email,
-        });
+        let transaction;
+        try {
+            transaction = await db.sequelize.transaction();
+            const newSaleOrder = await SaleOrder.create({
+                employee_id,
+                customer_id,
+                customer_name,
+                customer_email,
+            }, { transaction });
 
-        res.status(201).json({
-            status: 'success',
-            message: 'Sale order created successfully.',
-            data: newSaleOrder,
-            meta: {},
-        });
+            const orderItems = items.map(item => ({
+                ...item,
+                order_id: newSaleOrder.order_id,
+                status: item.status || 'PENDING'
+            }));
+
+            await SaleOrderItem.bulkCreate(orderItems, { transaction });
+            await transaction.commit();
+            const createdOrderWithTotals = await SaleOrder.findByPk(newSaleOrder.order_id, {
+                include: [{
+                    model: SaleOrderItem,
+                    as: 'items'
+                }]
+            });
+
+            res.status(201).json({
+                status: 'success',
+                message: 'Sale order created successfully.',
+                data: createdOrderWithTotals,
+                meta: {},
+            });
+        } catch (txnError) {
+            if (transaction) await transaction.rollback();
+            throw txnError; 
+        }
+
     } catch (error) {
         if (error.name === 'SequelizeForeignKeyConstraintError') {
             return res.status(404).json({
@@ -84,8 +106,9 @@ const getAllSaleOrders = async (req, res) => {
     try {
         const saleOrders = await SaleOrder.findAll({
             include: [
-                { model: db.Employee, as: 'employee' },
-                { model: db.Customer, as: 'customer' },
+                { model: Employee, as: 'employee' },
+                { model: Customer, as: 'customer' },
+                { model: SaleOrderItem, as: 'items' } 
             ]
         });
         res.status(200).json({
@@ -111,8 +134,9 @@ const getSaleOrderById = async (req, res) => {
         const { id } = req.params;
         const saleOrder = await SaleOrder.findByPk(id, {
             include: [
-                { model: db.Employee, as: 'employee' },
-                { model: db.Customer, as: 'customer' },
+                { model: Employee, as: 'employee' },
+                { model: Customer, as: 'customer' },
+                { model: SaleOrderItem, as: 'items' } 
             ]
         });
 
@@ -144,15 +168,21 @@ const getSaleOrderById = async (req, res) => {
 const updateSaleOrder = async (req, res) => {
     try {
         const { id } = req.params;
-        const { employee_id, customer_id, total_price, status, customer_name, customer_email } = req.body;
+        const { employee_id, customer_id, customer_name, customer_email } = req.body;
 
         const updateFields = {};
         if (employee_id !== undefined) updateFields.employee_id = employee_id;
         if (customer_id !== undefined) updateFields.customer_id = customer_id;
-        if (total_price !== undefined) updateFields.total_price = total_price;
-        if (status !== undefined) updateFields.status = status;
         if (customer_name !== undefined) updateFields.customer_name = customer_name;
         if (customer_email !== undefined) updateFields.customer_email = customer_email;
+        if (req.body.total_price !== undefined || req.body.total_billed_price !== undefined) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'total_price and total_billed_price cannot be updated directly. They are calculated by hooks.',
+                data: null,
+                meta: {},
+            });
+        }
 
         if (Object.keys(updateFields).length === 0) {
             return res.status(400).json({
@@ -212,8 +242,9 @@ const updateSaleOrder = async (req, res) => {
 
         const updatedSaleOrder = await SaleOrder.findByPk(id, {
             include: [
-                { model: db.Employee, as: 'employee' },
-                { model: db.Customer, as: 'customer' },
+                { model: Employee, as: 'employee' },
+                { model: Customer, as: 'customer' },
+                { model: SaleOrderItem, as: 'items' } 
             ]
         });
         res.status(200).json({
