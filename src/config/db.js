@@ -12,7 +12,7 @@ const dbConfig = {
             acquire: 30000,
             idle: 10000,
         },
-        logging: true
+        logging: console.log
     },
     production: {
         username: process.env.PROD_DB_USER,
@@ -42,7 +42,7 @@ const dbConfig = {
             acquire: 10000, 
             idle: 5000,   
         },
-        logging: true
+        logging: console.log
     },
 };
 
